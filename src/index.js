@@ -1,5 +1,7 @@
 //BACKEND
 
+//server running is 'npm run dev' btw if you forget
+
 //TODO - Know the fuck what this does
 const express = require("express");
 const { createServer } = require("http");
@@ -17,3 +19,4 @@ io.on("connect", (socket) => {
 app.use(express.static("public"));
 
 httpServer.listen(5000,()=>{console.log("server running")});
+
