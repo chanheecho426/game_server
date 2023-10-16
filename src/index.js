@@ -65,7 +65,7 @@ function tick(delta) {
 
 async function main() { //map loading(takes a long time,so use a promise method)
   const map2D = await loadMap()
-  //console.log(map2D)
+  //player
   io.on("connect", (socket) => {
     console.log("user connected", socket.id);
 
@@ -80,30 +80,42 @@ async function main() { //map loading(takes a long time,so use a promise method)
       id: socket.id,
       x: 0,
       y: 0,
+      playerType: 0
     });
 
     socket.emit('map', map2D);
-
+    //key movements
     socket.on('inputs', (inputs) => {
       inputsMap[socket.id] = inputs;
     });
-
+    //arrow
     socket.on('arrow', (angle) => {
       const player = players.find(player => player.id === socket.id)
       arrows.push({
         angle,
-        x: player.x + 20,
-        y: player.y + 20,
+        x: player.x+10,
+        y: player.y+20,
         timeLeft: 1000,
         playerId: socket.id
       })
     })
-
+    //disconnect
     socket.on("disconnect", () => {
       players = players.filter((player) => player.id !== socket.id);
     })
 
+    socket.on('arrows', (serverArrows) => {
+      arrows = serverArrows
+    })
 
+    socket.on('character_change', (PlayerId, CharacterNumber) => {
+      const player = players.find(player => player.id === PlayerId)
+      console.log(player)
+      if (player.id == PlayerId) {
+        player.playerType = CharacterNumber
+      }
+      
+    })
   });
 
 

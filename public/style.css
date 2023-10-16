@@ -1,0 +1,9 @@
+
+.default {
+    width: 100px;
+    height: 30px;
+}
+
+.hidden {
+    display: none;
+}

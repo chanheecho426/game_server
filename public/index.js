@@ -1,10 +1,73 @@
 //FRONTEND
-//Coordinate frame
+//Local variables
+let playerTypeLocal=0;
+let arrowRecharge=0
+
+
+
+
+
+//Buttons
+const RougeSelectButton = document.querySelector("#RougeSelect");
+const ArcherSelectButton = document.querySelector("#ArcherSelect");
+const KnightSelectButton = document.querySelector("#KnightSelect");
+const DEFAULT = "default";
+const HIDDEN = "hidden";
+
+
+RougeSelectButton.addEventListener("click", selectRouge);
+ArcherSelectButton.addEventListener("click", selectArcher);
+KnightSelectButton.addEventListener("click", selectKnight);
+/*playerType
+0 : unselected
+1 : rouge
+2 : archer
+3 : knight
+*/
+function selectRouge() {
+    RougeSelectButton.classList.remove(DEFAULT);
+    RougeSelectButton.classList.add(HIDDEN);
+    ArcherSelectButton.classList.remove(DEFAULT);
+    ArcherSelectButton.classList.add(HIDDEN);
+    KnightSelectButton.classList.remove(DEFAULT);
+    KnightSelectButton.classList.add(HIDDEN);
+    socket.emit("character_change",socket.id,1);
+    playerTypeLocal=1;
+}
+
+function selectArcher() {
+    RougeSelectButton.classList.remove(DEFAULT);
+    RougeSelectButton.classList.add(HIDDEN);
+    ArcherSelectButton.classList.remove(DEFAULT);
+    ArcherSelectButton.classList.add(HIDDEN);
+    KnightSelectButton.classList.remove(DEFAULT);
+    KnightSelectButton.classList.add(HIDDEN);
+    socket.emit("character_change",socket.id,2);
+    playerTypeLocal=2;
+}
+
+function selectKnight() {
+    RougeSelectButton.classList.remove(DEFAULT);
+    RougeSelectButton.classList.add(HIDDEN);
+    ArcherSelectButton.classList.remove(DEFAULT);
+    ArcherSelectButton.classList.add(HIDDEN);
+    KnightSelectButton.classList.remove(DEFAULT);
+    KnightSelectButton.classList.add(HIDDEN);
+    socket.emit("character_change",socket.id,3);
+    playerTypeLocal=3;
+}
+//Showing Basics
 const mapImage = new Image();
 mapImage.src = "/background.png";
 
 const rougeImage = new Image();
 rougeImage.src = "/rouge.png";
+
+const archerImage = new Image();
+archerImage.src = "/archer.png";
+
+const knightImage = new Image();
+knightImage.src = "/knight.png";
 
 const ArrowImage = new Image();
 ArrowImage.src = "/arrow.png";
@@ -17,7 +80,7 @@ canvasEl.width = window.innerWidth;
 canvasEl.height = window.innerHeight;
 
 const canvas = canvasEl.getContext("2d");
-const socket = io('ws://localhost:5000'); //CROS Error block here
+const socket = io('ws://10.244.165.34:5000'); //CROS Error block here
 
 const TILE_SIZE = 16;
 
@@ -27,6 +90,15 @@ socket.on("connect", () => { console.log("logged") });
 let map = [[]];
 let players = [];
 let arrows = [];
+//drawing function
+function drawImage(canvas, image, x, y, w, h, degrees){
+    canvas.save();
+    canvas.translate(x+w/2, y+h/2);
+    canvas.rotate(degrees);
+    canvas.translate(-x-w/2, -y-h/2);
+    canvas.drawImage(image, x, y, w, h);
+    canvas.restore();
+  }
 
 //bring map(must be done before the show screen process!!!)
 socket.on('map', (loadedMap) => {
@@ -83,11 +155,16 @@ window.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('click', (e) => {
-    const angle = Math.atan2(
-        e.clientY - canvasEl.height / 2,
-        e.clientX - canvasEl.width / 2)
-    socket.emit("arrow", angle
-    );
+    if (playerTypeLocal==2) {
+        if (Date.now() - arrowRecharge>1500) {
+            arrowRecharge=Date.now();
+            const angle = Math.atan2(
+                e.clientY - (canvasEl.height / 2+20),
+                e.clientX - (canvasEl.width / 2+20))
+            socket.emit("arrow", angle
+            );
+        }
+    }
 })
 
 
@@ -124,20 +201,27 @@ function loop() {
 
         }
     } */
+    //canvas.drawImage(TestPixelImage,canvasEl.width / 2, canvasEl.height / 2);
+
     canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height); //TODO - understand how this works
     for (const player of players) {
-
-        canvas.drawImage(rougeImage, player.x - cameraX, player.y - cameraY); //TODO - understand how this workss
+        if (player.playerType == 1) {   //Draw Rouge
+            canvas.drawImage(rougeImage, player.x - cameraX, player.y - cameraY); 
+        }
+        if (player.playerType == 2) {   //Draw Archer
+            canvas.drawImage(archerImage, player.x - cameraX, player.y - cameraY); 
+        }
+        if (player.playerType == 3) {   //Draw Knight
+            canvas.drawImage(knightImage, player.x - cameraX, player.y - cameraY); 
+        }
         //canvas.drawImage(TestPixelImage, player.x - cameraX+20, player.y - cameraY+20);
     };
-
     for (const arrow of arrows) {
-
-        canvas.drawImage(ArrowImage, arrow.x - cameraX, arrow.y - cameraY); //TODO - understand how this workss
+        drawImage(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle); //TODO - understand how this workss
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
     };
     window.requestAnimationFrame(loop);
 
 }
 //(has to be done after bringing map)
-setTimeout(() => loop(), 3000);
+setTimeout(() => loop(), 1000);
