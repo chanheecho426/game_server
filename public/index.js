@@ -1,7 +1,8 @@
 //FRONTEND
 //Local variables
 let playerTypeLocal=0;
-let arrowRecharge=0
+let arrowRecharge=0;
+let slashRecharge=0
 
 
 
@@ -75,6 +76,9 @@ ArrowImage.src = "/arrow.png";
 const SlashImage = new Image();
 SlashImage.src = "/slash.png";
 
+const ThrustImage = new Image();
+ThrustImage.src = "/thrust.png";
+
 const TestPixelImage = new Image();
 TestPixelImage.src = "/SINGLEPIXEL.png";
 
@@ -94,6 +98,7 @@ let map = [[]];
 let players = [];
 let arrows = [];
 let slashes = [];
+let thrusts = [];
 //drawing function
 function drawArrow(canvas, image, x, y, w, h, degrees){
     canvas.save();
@@ -108,6 +113,14 @@ function drawSlash(canvas, image, x, y, w, h, degrees){
     canvas.translate(x+15, y+65);
     canvas.rotate(degrees);
     canvas.translate(-x-15, -y-65);
+    canvas.drawImage(image, x, y, w, h);
+    canvas.restore();
+  }
+  function drawThrust(canvas, image, x, y, w, h, degrees){
+    canvas.save();
+    canvas.translate(x+5, y-20);
+    canvas.rotate(degrees);
+    canvas.translate(-x-5, -y+20);
     canvas.drawImage(image, x, y, w, h);
     canvas.restore();
   }
@@ -127,6 +140,10 @@ socket.on('arrows', (serverArrows) => {
 
 socket.on('slashes',(serverSlashes)=>{
     slashes = serverSlashes
+})
+
+socket.on('thrusts',(serverThrusts)=>{
+    thrusts = serverThrusts
 })
 
 //movement
@@ -171,6 +188,14 @@ window.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('click', (e) => {
+    if (playerTypeLocal==1) {
+        const angle = Math.atan2(
+            e.clientY - (canvasEl.height / 2+20),
+            e.clientX - (canvasEl.width / 2+20))
+        socket.emit("thrust", angle);
+        console.log(e.clientX - (canvasEl.width / 2+20))
+        console.log(e.clientY - (canvasEl.height / 2+20))
+    }
     
     
     
@@ -185,10 +210,13 @@ window.addEventListener('click', (e) => {
         }
         
         if (playerTypeLocal==3) {
-            const angle = Math.atan2(
-                e.clientY - (canvasEl.height / 2+20),
-                e.clientX - (canvasEl.width / 2+20))
-            socket.emit("slash", angle);
+            if (Date.now()-slashRecharge>500) {
+                slashRecharge=Date.now();
+                const angle = Math.atan2(
+                    e.clientY - (canvasEl.height / 2+20),
+                    e.clientX - (canvasEl.width / 2+20))
+                socket.emit("slash", angle);
+            }
         }
 })
 
@@ -228,7 +256,7 @@ function loop() {
     } */
     //canvas.drawImage(TestPixelImage,canvasEl.width / 2, canvasEl.height / 2);
 
-    canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height); //TODO - understand how this works
+    canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height); 
     for (const player of players) {
         if (player.playerType == 1) {   //Draw Rouge
             canvas.drawImage(rougeImage, player.x - cameraX, player.y - cameraY); 
@@ -242,12 +270,16 @@ function loop() {
         //canvas.drawImage(TestPixelImage, player.x - cameraX+20, player.y - cameraY+20);
     };
     for (const arrow of arrows) {
-        drawArrow(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle); //TODO - understand how this workss
+        drawArrow(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle);
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
     };
     for (const slash of slashes) {
-        drawSlash(canvas,SlashImage, slash.x - cameraX, slash.y - cameraY,75,93,slash.angle); //TODO - understand how this workss
+        drawSlash(canvas,SlashImage, slash.x - cameraX, slash.y - cameraY,75,93,slash.angle);
         //canvas.drawImage(TestPixelImage, slash.x+10 - cameraX+(30*Math.cos(slash.angle)), slash.y+60 - cameraY+(30*Math.sin(slash.angle)));
+    };
+    for (const thrust of thrusts) {
+        drawThrust(canvas,ThrustImage, thrust.x - cameraX, thrust.y - cameraY,10,46,thrust.angle-1.57);
+        //canvas.drawImage(TestPixelImage, thrust.x+3 - cameraX+(45*Math.cos(thrust.angle)), thrust.y-22 - cameraY+(45*Math.sin(thrust.angle)));
     };
     window.requestAnimationFrame(loop);
 

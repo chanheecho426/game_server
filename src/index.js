@@ -22,6 +22,7 @@ const TICK_RATE = 60;
 let players = [];
 let arrows = [];
 let slashes = [];
+let thrusts = [];
 const inputsMap = {};
 
 function tick(delta) {
@@ -70,13 +71,29 @@ function tick(delta) {
     }
 
   }
+  //thrusts
+  for (const thrust of thrusts) {
+    thrust.timeLeft -= delta;
+    for (const player of players) {
+      if (player.id === thrust.playerId) continue;
+        const distance = Math.sqrt(((player.x + 20) - (thrust.x + 3 + (45*Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y -22+(45*Math.sin(thrust.angle)))) ** 2);
+        if (distance <= 30) {
+          player.x = 0;
+          player.y = 0;
+          break;
+      } 
+    }
+
+  }
 
   
   arrows = arrows.filter((arrow) => arrow.timeLeft > 0)
   slashes = slashes.filter((slash) => slash.timeLeft > 0)
+  thrusts = thrusts.filter((thrust) => thrust.timeLeft > 0)
   io.emit("players", players);
   io.emit("arrows", arrows);
   io.emit("slashes", slashes);
+  io.emit("thrusts",thrusts);
 };
 
 
@@ -124,6 +141,17 @@ async function main() { //map loading(takes a long time,so use a promise method)
         x: player.x,
         y: player.y-40,
         timeLeft: 100,
+        playerId: socket.id
+      })
+    })
+    //thrust
+    socket.on('thrust', (angle) => {
+      const player = players.find(player => player.id === socket.id)
+      thrusts.push({
+        angle,
+        x: player.x+10,
+        y: player.y+38,
+        timeLeft: 90,
         playerId: socket.id
       })
     })
