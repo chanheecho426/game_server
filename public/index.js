@@ -87,7 +87,7 @@ canvasEl.width = window.innerWidth;
 canvasEl.height = window.innerHeight;
 
 const canvas = canvasEl.getContext("2d");
-const socket = io('ws://10.244.165.34:5000'); //CROS Error block here
+const socket = io('ws://localhost:5000'); //CROS Error block here
 
 const TILE_SIZE = 16;
 
@@ -108,7 +108,7 @@ function drawArrow(canvas, image, x, y, w, h, degrees){
     canvas.drawImage(image, x, y, w, h);
     canvas.restore();
   }
-function drawSlash(canvas, image, x, y, w, h, degrees){
+  function drawSlash(canvas, image, x, y, w, h, degrees){
     canvas.save();
     canvas.translate(x+15, y+65);
     canvas.rotate(degrees);
@@ -266,16 +266,19 @@ function loop() {
         }
         if (player.playerType == 3) {   //Draw Knight
             canvas.drawImage(knightImage, player.x - cameraX, player.y - cameraY); 
+            
         }
         //canvas.drawImage(TestPixelImage, player.x - cameraX+20, player.y - cameraY+20);
+        canvas.fillStyle = "red"
+        canvas.fillRect(player.x - cameraX-30, player.y - cameraY-20, 4*player.Hp, 10);
     };
     for (const arrow of arrows) {
         drawArrow(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle);
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
     };
     for (const slash of slashes) {
-        drawSlash(canvas,SlashImage, slash.x - cameraX, slash.y - cameraY,75,93,slash.angle);
-        //canvas.drawImage(TestPixelImage, slash.x+10 - cameraX+(30*Math.cos(slash.angle)), slash.y+60 - cameraY+(30*Math.sin(slash.angle)));
+        drawSlash(canvas,SlashImage, slash.x - cameraX, slash.y - cameraY,75,93,slash.angle+0.5);
+        //canvas.drawImage(TestPixelImage, slash.x+10 - cameraX+(30*Math.cos(slash.angle)), slash.y+50 - cameraY+(30*Math.sin(slash.angle)));
     };
     for (const thrust of thrusts) {
         drawThrust(canvas,ThrustImage, thrust.x - cameraX, thrust.y - cameraY,10,46,thrust.angle-1.57);

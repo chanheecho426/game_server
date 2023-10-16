@@ -44,13 +44,12 @@ function tick(delta) {
     arrow.x += Math.cos(arrow.angle) * ARROW_SPEED;
     arrow.y += Math.sin(arrow.angle) * ARROW_SPEED;
     arrow.timeLeft -= delta;
-    
+
     for (const player of players) {
       if (player.id === arrow.playerId) continue;
       const distance = Math.sqrt((((player.x + 20) - (arrow.x + 11))) ** 2 + ((player.y + 20) - (arrow.y + 3)) ** 2);
       if (distance <= 20) {
-        player.x = 0;
-        player.y = 0;
+        player.Hp -= 4
         arrow.timeLeft = -1;
         break;
       }
@@ -62,11 +61,11 @@ function tick(delta) {
     slash.timeLeft -= delta;
     for (const player of players) {
       if (player.id === slash.playerId) continue;
-        const distance = Math.sqrt(((player.x + 20) - (slash.x + 10 + (30*Math.cos(slash.angle)))) ** 2 + ((player.y + 20) - (slash.y +60+(30*Math.sin(slash.angle)))) ** 2);
-        if (distance <= 50) {
-          player.x = 0;
-          player.y = 0;
-          break;
+      const distance = Math.sqrt(((player.x + 20) - (slash.x + 10 + (30 * Math.cos(slash.angle)))) ** 2 + ((player.y + 20) - (slash.y + 60 + (30 * Math.sin(slash.angle)))) ** 2);
+      if (distance <= 50 && slash.hitPlayer==0) {
+        player.Hp -= 5
+        slash.hitPlayer =1;
+        break;
       }
     }
 
@@ -76,24 +75,30 @@ function tick(delta) {
     thrust.timeLeft -= delta;
     for (const player of players) {
       if (player.id === thrust.playerId) continue;
-        const distance = Math.sqrt(((player.x + 20) - (thrust.x + 3 + (45*Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y -22+(45*Math.sin(thrust.angle)))) ** 2);
-        if (distance <= 30) {
-          player.x = 0;
-          player.y = 0;
-          break;
-      } 
+      const distance = Math.sqrt(((player.x + 20) - (thrust.x + 1 + (45 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (45 * Math.sin(thrust.angle)))) ** 2);
+      if (distance <= 25 && thrust.hitPlayer==0) {
+        player.Hp -= 2
+        thrust.hitPlayer = 1;
+        break;
+      }
     }
 
   }
 
-  
+  for (const player of players) {
+    if (player.Hp <= 0) {
+      player.x = 0;
+      player.y = 0;
+      player.Hp = 20;
+    }
+  }
   arrows = arrows.filter((arrow) => arrow.timeLeft > 0)
   slashes = slashes.filter((slash) => slash.timeLeft > 0)
   thrusts = thrusts.filter((thrust) => thrust.timeLeft > 0)
   io.emit("players", players);
   io.emit("arrows", arrows);
   io.emit("slashes", slashes);
-  io.emit("thrusts",thrusts);
+  io.emit("thrusts", thrusts);
 };
 
 
@@ -114,7 +119,8 @@ async function main() { //map loading(takes a long time,so use a promise method)
       id: socket.id,
       x: 0,
       y: 0,
-      playerType: 0
+      playerType: 0,
+      Hp: 20
     });
 
     socket.emit('map', map2D);
@@ -127,8 +133,8 @@ async function main() { //map loading(takes a long time,so use a promise method)
       const player = players.find(player => player.id === socket.id)
       arrows.push({
         angle,
-        x: player.x+10,
-        y: player.y+20,
+        x: player.x + 10,
+        y: player.y + 20,
         timeLeft: 1000,
         playerId: socket.id
       })
@@ -138,9 +144,10 @@ async function main() { //map loading(takes a long time,so use a promise method)
       const player = players.find(player => player.id === socket.id)
       slashes.push({
         angle,
+        hitPlayer: 0,
         x: player.x,
-        y: player.y-40,
-        timeLeft: 100,
+        y: player.y - 40,
+        timeLeft: 200,
         playerId: socket.id
       })
     })
@@ -149,8 +156,9 @@ async function main() { //map loading(takes a long time,so use a promise method)
       const player = players.find(player => player.id === socket.id)
       thrusts.push({
         angle,
-        x: player.x+10,
-        y: player.y+38,
+        hitPlayer: 0,
+        x: player.x + 10,
+        y: player.y + 38,
         timeLeft: 90,
         playerId: socket.id
       })
@@ -169,7 +177,7 @@ async function main() { //map loading(takes a long time,so use a promise method)
       if (player.id == PlayerId) {
         player.playerType = CharacterNumber
       }
-      
+
     })
   });
 
