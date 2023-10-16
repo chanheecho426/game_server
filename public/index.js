@@ -72,6 +72,9 @@ knightImage.src = "/knight.png";
 const ArrowImage = new Image();
 ArrowImage.src = "/arrow.png";
 
+const SlashImage = new Image();
+SlashImage.src = "/slash.png";
+
 const TestPixelImage = new Image();
 TestPixelImage.src = "/SINGLEPIXEL.png";
 
@@ -90,12 +93,21 @@ socket.on("connect", () => { console.log("logged") });
 let map = [[]];
 let players = [];
 let arrows = [];
+let slashes = [];
 //drawing function
-function drawImage(canvas, image, x, y, w, h, degrees){
+function drawArrow(canvas, image, x, y, w, h, degrees){
     canvas.save();
     canvas.translate(x+w/2, y+h/2);
     canvas.rotate(degrees);
     canvas.translate(-x-w/2, -y-h/2);
+    canvas.drawImage(image, x, y, w, h);
+    canvas.restore();
+  }
+function drawSlash(canvas, image, x, y, w, h, degrees){
+    canvas.save();
+    canvas.translate(x+15, y+65);
+    canvas.rotate(degrees);
+    canvas.translate(-x-15, -y-65);
     canvas.drawImage(image, x, y, w, h);
     canvas.restore();
   }
@@ -111,6 +123,10 @@ socket.on('players', (serverPlayers) => {
 
 socket.on('arrows', (serverArrows) => {
     arrows = serverArrows
+})
+
+socket.on('slashes',(serverSlashes)=>{
+    slashes = serverSlashes
 })
 
 //movement
@@ -155,16 +171,25 @@ window.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('click', (e) => {
+    
+    
+    
     if (playerTypeLocal==2) {
         if (Date.now() - arrowRecharge>1500) {
             arrowRecharge=Date.now();
             const angle = Math.atan2(
                 e.clientY - (canvasEl.height / 2+20),
                 e.clientX - (canvasEl.width / 2+20))
-            socket.emit("arrow", angle
-            );
+                socket.emit("arrow", angle);
+            }
         }
-    }
+        
+        if (playerTypeLocal==3) {
+            const angle = Math.atan2(
+                e.clientY - (canvasEl.height / 2+20),
+                e.clientX - (canvasEl.width / 2+20))
+            socket.emit("slash", angle);
+        }
 })
 
 
@@ -217,8 +242,12 @@ function loop() {
         //canvas.drawImage(TestPixelImage, player.x - cameraX+20, player.y - cameraY+20);
     };
     for (const arrow of arrows) {
-        drawImage(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle); //TODO - understand how this workss
+        drawArrow(canvas,ArrowImage, arrow.x - cameraX, arrow.y - cameraY,22,6,arrow.angle); //TODO - understand how this workss
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
+    };
+    for (const slash of slashes) {
+        drawSlash(canvas,SlashImage, slash.x - cameraX, slash.y - cameraY,75,93,slash.angle); //TODO - understand how this workss
+        //canvas.drawImage(TestPixelImage, slash.x+10 - cameraX+(30*Math.cos(slash.angle)), slash.y+60 - cameraY+(30*Math.sin(slash.angle)));
     };
     window.requestAnimationFrame(loop);
 

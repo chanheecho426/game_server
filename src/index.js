@@ -21,6 +21,7 @@ const TICK_RATE = 60;
 
 let players = [];
 let arrows = [];
+let slashes = [];
 const inputsMap = {};
 
 function tick(delta) {
@@ -37,14 +38,15 @@ function tick(delta) {
       player.x -= SPEED
     }
   }
-
+  //arrows
   for (const arrow of arrows) {
     arrow.x += Math.cos(arrow.angle) * ARROW_SPEED;
     arrow.y += Math.sin(arrow.angle) * ARROW_SPEED;
     arrow.timeLeft -= delta;
+    
     for (const player of players) {
       if (player.id === arrow.playerId) continue;
-      const distance = Math.sqrt(((player.x + 20) - (arrow.x + 11)) ** 2 + ((player.y + 20) - (arrow.y + 3)) ** 2);
+      const distance = Math.sqrt((((player.x + 20) - (arrow.x + 11))) ** 2 + ((player.y + 20) - (arrow.y + 3)) ** 2);
       if (distance <= 20) {
         player.x = 0;
         player.y = 0;
@@ -53,13 +55,28 @@ function tick(delta) {
       }
 
     }
+  }
+  //slashes
+  for (const slash of slashes) {
+    slash.timeLeft -= delta;
+    for (const player of players) {
+      if (player.id === slash.playerId) continue;
+        const distance = Math.sqrt(((player.x + 20) - (slash.x + 10 + (30*Math.cos(slash.angle)))) ** 2 + ((player.y + 20) - (slash.y +60+(30*Math.sin(slash.angle)))) ** 2);
+        if (distance <= 50) {
+          player.x = 0;
+          player.y = 0;
+          break;
+      }
+    }
 
   }
 
+  
   arrows = arrows.filter((arrow) => arrow.timeLeft > 0)
-
+  slashes = slashes.filter((slash) => slash.timeLeft > 0)
   io.emit("players", players);
   io.emit("arrows", arrows);
+  io.emit("slashes", slashes);
 };
 
 
@@ -99,6 +116,17 @@ async function main() { //map loading(takes a long time,so use a promise method)
         playerId: socket.id
       })
     })
+    //slash
+    socket.on('slash', (angle) => {
+      const player = players.find(player => player.id === socket.id)
+      slashes.push({
+        angle,
+        x: player.x,
+        y: player.y-40,
+        timeLeft: 100,
+        playerId: socket.id
+      })
+    })
     //disconnect
     socket.on("disconnect", () => {
       players = players.filter((player) => player.id !== socket.id);
@@ -110,7 +138,6 @@ async function main() { //map loading(takes a long time,so use a promise method)
 
     socket.on('character_change', (PlayerId, CharacterNumber) => {
       const player = players.find(player => player.id === PlayerId)
-      console.log(player)
       if (player.id == PlayerId) {
         player.playerType = CharacterNumber
       }
