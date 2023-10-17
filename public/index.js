@@ -174,7 +174,7 @@ window.addEventListener('keydown', (e) => {
         inputs['right'] = true;
     } else if (e.key == 'Shift') {       //skills
         if (playerTypeLocal == 1) {
-            if (Date.now() - skillRecharge > 2500 && keyHoldPrevent == 0) {
+            if (Date.now() - skillRecharge > 1500 && keyHoldPrevent == 0) {
                 skillRecharge = Date.now()
                 socket.emit("roll", socket.id);
                 keyHoldPrevent = 1;
@@ -290,11 +290,11 @@ function loop() {
 
     canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height);
     for (const player of players) {
-        if (player.direction == "left") {
+        if (player.direction == "left" && player.playerType !=0) {
             canvas.scale(-1, 1);
             flip = -1
             flipXmove = -30;
-        } else if (player.direction == "right") {
+        } else if (player.direction == "right" && player.playerType !=0) {
             flip = 1
             flipXmove = 0;
         }
