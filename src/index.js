@@ -27,17 +27,35 @@ const inputsMap = {};
 function tick(delta) {
   //movement
   for (const player of players) {
-    const inputs = inputsMap[player.id];
+    const inputs = inputsMap[player.id];//1510 675
     if (inputs.up) {
-      player.y -= player.speed
+      if (player.y>0) {
+        player.y -= player.speed
+      } else { 
+        player.y = 0
+      }
 
     } else if (inputs.down) {
-      player.y += player.speed
+      if (player.y<675) {
+        player.y += player.speed
+      } else {
+        player.y = 675;
+      }
     }
     if (inputs.right) {
-      player.x += player.speed
+      player.direction="right"
+      if (player.x<1510) {
+        player.x += player.speed
+      } else {
+        player.x =1510
+      }
     } else if (inputs.left) {
-      player.x -= player.speed
+      player.direction="left"
+      if (player.x>0) {
+        player.x -= player.speed
+      } else {
+        player.x=0;
+      }
     }
 
   }
@@ -149,8 +167,8 @@ function tick(delta) {
 
   for (const player of players) {
     if (player.Hp <= 0) {
-      player.x = 0;
-      player.y = 0;
+      player.x = 1510/2;
+      player.y = 675/2;
       player.Hp = 20;
     }
   }
@@ -201,8 +219,8 @@ async function main() { //map loading(takes a long time,so use a promise method)
 
     players.push({
       id: socket.id,
-      x: 0,
-      y: 0,
+      x: 20,
+      y: 20,
       playerType: 0,
       Hp: 20,
       skillUse: 0,
@@ -210,7 +228,8 @@ async function main() { //map loading(takes a long time,so use a promise method)
       takenAttack: 1,
       attack: 0,
       kbtime: -1,
-      kbangle: 0
+      kbangle: 0,
+      direction: "right"
     });
 
     socket.emit('map', map2D);

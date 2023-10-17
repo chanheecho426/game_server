@@ -7,6 +7,8 @@ let skillUse = 0;
 let keyHoldPrevent = 0;
 let skillRecharge = 0;
 let arrowSignal = 0;
+let flip = 1;
+let flipXmove = 0;
 
 //Buttons
 const RougeSelectButton = document.querySelector("#RougeSelect");
@@ -228,13 +230,13 @@ window.addEventListener('click', (e) => {
             const angle = Math.atan2(
                 e.clientY - (canvasEl.height / 2 + 20),
                 e.clientX - (canvasEl.width / 2 + 20))
-            if (arrowSignal==1) {
-                socket.emit("arrow", angle,true);
+            if (arrowSignal == 1) {
+                socket.emit("arrow", angle, true);
                 arrowSignal = 0;
             } else {
-                socket.emit("arrow", angle,false);
+                socket.emit("arrow", angle, false);
             }
-            
+
         }
     }
 
@@ -288,22 +290,34 @@ function loop() {
 
     canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height);
     for (const player of players) {
+        if (player.direction == "left") {
+            canvas.scale(-1, 1);
+            flip = -1
+            flipXmove = -30;
+        } else if (player.direction == "right") {
+            flip = 1
+            flipXmove = 0;
+        }
         if (player.playerType == 1) {   //Draw Rouge
-            canvas.drawImage(rougeImage, player.x - cameraX, player.y - cameraY);
+            canvas.drawImage(rougeImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            canvas.setTransform(1, 0, 0, 1, 0, 0);
         }
         if (player.playerType == 2) {   //Draw Archer
-            canvas.drawImage(archerImage, player.x - cameraX, player.y - cameraY);
+            canvas.drawImage(archerImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            canvas.setTransform(1, 0, 0, 1, 0, 0);
         }
         if (player.playerType == 3) {   //Draw Knight
-            canvas.drawImage(knightImage, player.x - cameraX, player.y - cameraY);
-            if (player.skillUse>0) {
-                canvas.drawImage(shieldImage, player.x - cameraX-10, player.y - cameraY-4);
+            canvas.drawImage(knightImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            canvas.setTransform(1, 0, 0, 1, 0, 0);
+            if (player.skillUse > 0) {
+                canvas.drawImage(shieldImage, player.x - cameraX - 10, player.y - cameraY - 4);
             }
         }
+
         //canvas.drawImage(TestPixelImage, player.x - cameraX+20, player.y - cameraY+20);
         canvas.fillStyle = "red"
         canvas.fillRect(player.x - cameraX - 30, player.y - cameraY - 20, 4 * player.Hp, 10);
-        
+
     };
     for (const arrow of arrows) {
         drawArrow(canvas, ArrowImage, arrow.x - cameraX, arrow.y - cameraY, 22, 6, arrow.angle);
