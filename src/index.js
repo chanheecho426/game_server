@@ -29,33 +29,16 @@ function tick(delta) {
   for (const player of players) {
     const inputs = inputsMap[player.id];//1510 675
     if (inputs.up) {
-      if (player.y>0) {
-        player.y -= player.speed
-      } else { 
-        player.y = 0
-      }
-
+      player.y -= player.speed
     } else if (inputs.down) {
-      if (player.y<675) {
-        player.y += player.speed
-      } else {
-        player.y = 675;
-      }
+      player.y += player.speed
     }
     if (inputs.right) {
       player.direction="right"
-      if (player.x<1510) {
-        player.x += player.speed
-      } else {
-        player.x =1510
-      }
+      player.x += player.speed
     } else if (inputs.left) {
       player.direction="left"
-      if (player.x>0) {
-        player.x -= player.speed
-      } else {
-        player.x=0;
-      }
+      player.x -= player.speed
     }
 
   }
@@ -78,7 +61,7 @@ function tick(delta) {
       if (player.id === arrow.playerId) continue;
       const [attacker] = players.filter((player) => player.id === arrow.playerId);
       const distance = Math.sqrt((((player.x + 20) - (arrow.x + 11))) ** 2 + ((player.y + 20) - (arrow.y + 3)) ** 2);
-      if (distance <= 20) {
+      if (distance <= 40) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
           player.attack = 10;
@@ -109,7 +92,7 @@ function tick(delta) {
       if (player.id === slash.playerId) continue;
       const [attacker] = players.filter((player) => player.id === slash.playerId);
       const distance = Math.sqrt(((player.x + 20) - (slash.x + 20 + (30 * Math.cos(slash.angle)))) ** 2 + ((player.y + 20) - (slash.y + 60 + (30 * Math.sin(slash.angle)))) ** 2);
-      if (distance <= 50 && slash.hitPlayer == 0) {
+      if (distance <= 75 && slash.hitPlayer == 0) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
           player.attack = 10;
@@ -142,7 +125,7 @@ function tick(delta) {
       if (player.id === thrust.playerId) continue;
       const [attacker] = players.filter((player) => player.id === thrust.playerId);
       const distance = Math.sqrt(((player.x + 20) - (thrust.x + 13 + (45 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (45 * Math.sin(thrust.angle)))) ** 2);
-      if (distance <= 25 && thrust.hitPlayer == 0) {
+      if (distance <= 40 && thrust.hitPlayer == 0) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
           player.attack = 10;
@@ -179,7 +162,7 @@ function tick(delta) {
     player.takenAttack = 1;
     if (player.skillUse > 0) {
       if (player.playerType == 1) {
-        player.speed = 15;
+        player.speed = 25;
         player.takenAttack = 0;
         player.skillUse -= delta
       } else if (player.playerType == 2) {
@@ -280,13 +263,13 @@ async function main() { //map loading(takes a long time,so use a promise method)
     //roll
     socket.on('roll', (id) => {
       const player = players.find(player => player.id === id)
-      player.skillUse = 100;
+      player.skillUse = 200;
     })
     //knockback arrow
     //shield
     socket.on('shield', (id) => {
       const player = players.find(player => player.id === id)
-      player.skillUse = 750;
+      player.skillUse = 1500;
     })
 
 

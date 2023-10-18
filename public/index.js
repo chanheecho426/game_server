@@ -34,7 +34,7 @@ function selectRouge() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 1, 1.5);
+    socket.emit("character_change", socket.id, 1, 2);
     playerTypeLocal = 1;
 }
 
@@ -45,7 +45,7 @@ function selectArcher() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 2, 4);
+    socket.emit("character_change", socket.id, 2, 3);
     playerTypeLocal = 2;
 }
 
@@ -92,7 +92,7 @@ canvasEl.width = window.innerWidth;
 canvasEl.height = window.innerHeight;
 
 const canvas = canvasEl.getContext("2d");
-const socket = io('ws://localhost:5000'); //CROS Error block here
+const socket = io('ws://25.25.140.49:5000',{timeout:1000000}); //CROS Error block here
 
 const TILE_SIZE = 16;
 
@@ -174,7 +174,7 @@ window.addEventListener('keydown', (e) => {
         inputs['right'] = true;
     } else if (e.key == 'Shift') {       //skills
         if (playerTypeLocal == 1) {
-            if (Date.now() - skillRecharge > 1500 && keyHoldPrevent == 0) {
+            if (Date.now() - skillRecharge > 2500 && keyHoldPrevent == 0) {
                 skillRecharge = Date.now()
                 socket.emit("roll", socket.id);
                 keyHoldPrevent = 1;
@@ -186,7 +186,7 @@ window.addEventListener('keydown', (e) => {
                 keyHoldPrevent = 1;
             }
         } else if (playerTypeLocal == 3) {
-            if (Date.now() - skillRecharge > 2500 && keyHoldPrevent == 0) {
+            if (Date.now() - skillRecharge > 4500 && keyHoldPrevent == 0) {
                 skillRecharge = Date.now()
                 socket.emit("shield", socket.id);
                 keyHoldPrevent = 1;
@@ -225,7 +225,7 @@ window.addEventListener('click', (e) => {
 
 
     if (playerTypeLocal == 2) {
-        if (Date.now() - arrowRecharge > 1500) {
+        if (Date.now() - arrowRecharge > 750) {
             arrowRecharge = Date.now();
             const angle = Math.atan2(
                 e.clientY - (canvasEl.height / 2 + 20),
@@ -320,15 +320,15 @@ function loop() {
 
     };
     for (const arrow of arrows) {
-        drawArrow(canvas, ArrowImage, arrow.x - cameraX, arrow.y - cameraY, 22, 6, arrow.angle);
+        drawArrow(canvas, ArrowImage, arrow.x - cameraX, arrow.y - cameraY, 33, 9, arrow.angle);
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
     };
     for (const slash of slashes) {
-        drawSlash(canvas, SlashImage, slash.x - cameraX, slash.y - cameraY, 75, 93, slash.angle + 0.5);
+        drawSlash(canvas, SlashImage, slash.x - cameraX, slash.y - cameraY, 112.5, 139.5, slash.angle + 0.5);
         //canvas.drawImage(TestPixelImage, slash.x+10 - cameraX+(30*Math.cos(slash.angle)), slash.y+50 - cameraY+(30*Math.sin(slash.angle)));
     };
     for (const thrust of thrusts) {
-        drawThrust(canvas, ThrustImage, thrust.x - cameraX, thrust.y - cameraY, 10, 46, thrust.angle - 1.57);
+        drawThrust(canvas, ThrustImage, thrust.x - cameraX, thrust.y - cameraY, 15, 69, thrust.angle - 1.57);
         //canvas.drawImage(TestPixelImage, thrust.x+3 - cameraX+(45*Math.cos(thrust.angle)), thrust.y-22 - cameraY+(45*Math.sin(thrust.angle)));
     };
     window.requestAnimationFrame(loop);
