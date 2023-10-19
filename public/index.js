@@ -3,6 +3,7 @@
 let playerTypeLocal = 0;
 let arrowRecharge = 0;
 let slashRecharge = 0;
+let thrustRecharge = 0;
 let skillUse = 0;
 let keyHoldPrevent = 0;
 let skillRecharge = 0;
@@ -34,7 +35,7 @@ function selectRouge() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 1, 2);
+    socket.emit("character_change", socket.id, 1, 7);
     playerTypeLocal = 1;
 }
 
@@ -63,6 +64,9 @@ function selectKnight() {
 const mapImage = new Image();
 mapImage.src = "/background.png";
 
+const rockImage = new Image();
+rockImage.src = "/rock.png";
+
 const rougeImage = new Image();
 rougeImage.src = "/rouge.png";
 
@@ -72,8 +76,14 @@ archerImage.src = "/archer.png";
 const knightImage = new Image();
 knightImage.src = "/knight.png";
 
+const skillKnightImage = new Image();
+skillKnightImage.src = "/knight_skill.png";
+
 const ArrowImage = new Image();
 ArrowImage.src = "/arrow.png";
+
+const slowArrowImage = new Image();
+slowArrowImage.src = "/slow_arrow.png";
 
 const SlashImage = new Image();
 SlashImage.src = "/slash.png";
@@ -104,6 +114,8 @@ let players = [];
 let arrows = [];
 let slashes = [];
 let thrusts = [];
+let rocks = [];
+let localKnightDamage=5;
 //drawing function
 function drawArrow(canvas, image, x, y, w, h, degrees) {
     canvas.save();
@@ -151,6 +163,11 @@ socket.on('thrusts', (serverThrusts) => {
     thrusts = serverThrusts
 })
 
+socket.on('rocks', (serverRocks) => {
+    rocks = serverRocks
+})
+
+
 
 //movement
 const inputs = {
@@ -180,7 +197,7 @@ window.addEventListener('keydown', (e) => {
                 keyHoldPrevent = 1;
             }
         } else if (playerTypeLocal == 2) {
-            if (Date.now() - skillRecharge > 10000 && keyHoldPrevent == 0) {
+            if (Date.now() - skillRecharge > 7000 && keyHoldPrevent == 0) {
                 skillRecharge = Date.now()
                 arrowSignal = 1;
                 keyHoldPrevent = 1;
@@ -216,10 +233,13 @@ window.addEventListener('keyup', (e) => {
 
 window.addEventListener('click', (e) => {
     if (playerTypeLocal == 1) {
-        const angle = Math.atan2(
-            e.clientY - (canvasEl.height / 2 + 20),
-            e.clientX - (canvasEl.width / 2 + 20))
-        socket.emit("thrust", angle);
+        if (Date.now() - thrustRecharge > 1500) {
+            const angle = Math.atan2(
+                e.clientY - (canvasEl.height / 2 + 20),
+                e.clientX - (canvasEl.width / 2 + 20))
+            socket.emit("thrust", angle);
+            thrustRecharge = Date.now();
+        }
     }
 
 
@@ -246,7 +266,10 @@ window.addEventListener('click', (e) => {
             const angle = Math.atan2(
                 e.clientY - (canvasEl.height / 2 + 20),
                 e.clientX - (canvasEl.width / 2 + 20))
-            socket.emit("slash", angle);
+            socket.emit("slash", angle,localKnightDamage);
+        if (localKnightDamage==10) {
+            localKnightDamage=5;
+        };
 
         }
     }
@@ -255,6 +278,9 @@ window.addEventListener('click', (e) => {
 
 //show screen
 function loop() {
+    socket.on("upGradeAttack",(damage)=>{
+        localKnightDamage=damage;
+    })
     canvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
     const myPlayer = players.find((player) => player.id == socket.id);
     let cameraX = 0;
@@ -289,6 +315,11 @@ function loop() {
     //canvas.drawImage(TestPixelImage,canvasEl.width / 2, canvasEl.height / 2);
 
     canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height);
+
+    for (const rock of rocks) {
+        canvas.drawImage(rockImage, rock.x- cameraX,rock.y- cameraY,80,80);
+    }
+
     for (const player of players) {
         if (player.direction == "left" && player.playerType !=0) {
             canvas.scale(-1, 1);
@@ -307,7 +338,11 @@ function loop() {
             canvas.setTransform(1, 0, 0, 1, 0, 0);
         }
         if (player.playerType == 3) {   //Draw Knight
-            canvas.drawImage(knightImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            if (player.attack==10) {
+                canvas.drawImage(skillKnightImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            } else {
+                canvas.drawImage(knightImage, (player.x - cameraX) * flip + flipXmove, player.y - cameraY);
+            }
             canvas.setTransform(1, 0, 0, 1, 0, 0);
             if (player.skillUse > 0) {
                 canvas.drawImage(shieldImage, player.x - cameraX - 10, player.y - cameraY - 4);
@@ -320,7 +355,12 @@ function loop() {
 
     };
     for (const arrow of arrows) {
-        drawArrow(canvas, ArrowImage, arrow.x - cameraX, arrow.y - cameraY, 33, 9, arrow.angle);
+        if (arrow.slow == true) {
+            drawArrow(canvas, slowArrowImage, arrow.x - cameraX, arrow.y - cameraY, 33, 9, arrow.angle);
+        }
+        else {
+            drawArrow(canvas, ArrowImage, arrow.x - cameraX, arrow.y - cameraY, 33, 9, arrow.angle);
+        }
         //canvas.drawImage(TestPixelImage, arrow.x - cameraX+11, arrow.y - cameraY+3);
     };
     for (const slash of slashes) {

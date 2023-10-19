@@ -18,36 +18,87 @@ const ARROW_SPEED = 30;
 const TICK_RATE = 60;
 
 //attack,players
+const inputsMap = {};
 let players = [];
 let arrows = [];
 let slashes = [];
 let thrusts = [];
-const inputsMap = {};
+let rocks=[
+  {x:150,y:948},
+  {x:1300,y:137},
+  {x:658,y:289},
+  {x:784,y:471},
+  {x:374,y:1234},
+  {x:710,y:790},
+  {x:1249,y:127}];
+  
+
+
+function colliding(rect1,rect2) {
+  return (rect1.x < rect2.x + rect2.w &&
+  rect1.x + rect1.w > rect2.x &&
+  rect1.y < rect2.y + rect2.h &&
+  rect1.y + rect1.h > rect2.y)
+}
+function isCollidingWithRock(player) {
+  for (const rock of rocks) {
+    if (colliding({...player,w:40,h:40},{...rock,w:80,h:70})) {
+      return true;
+    }
+  }
+}
+
 
 function tick(delta) {
   //movement
   for (const player of players) {
-    const inputs = inputsMap[player.id];//1510 675
+    const previousX=player.x;
+    const previousY=player.y;
+    const inputs = inputsMap[player.id];
     if (inputs.up) {
-      player.y -= player.speed
+      if (player.y > 0) {
+        player.y -= player.speed * player.speedTimes;
+      } else {
+        player.y = 0;
+      }
     } else if (inputs.down) {
-      player.y += player.speed
-    }
-    if (inputs.right) {
-      player.direction="right"
-      player.x += player.speed
-    } else if (inputs.left) {
-      player.direction="left"
-      player.x -= player.speed
+      if (player.y < 700) {
+        player.y += player.speed * player.speedTimes;
+      } else {
+        player.y = 700;
+      }
     }
 
+    if (isCollidingWithRock(player)) {
+      player.y= previousY
+    }
+
+    if (inputs.right) {
+      if (player.x < 1500) {
+        player.direction = "right";
+        player.x += player.speed * player.speedTimes;
+      } else {
+        player.x = 1500;
+      }
+    } else if (inputs.left) {
+      if (player.x > 0) {
+        player.direction = "left"
+        player.x -= player.speed * player.speedTimes
+      } else {
+        player.x = 0;
+      }
+    }
+    if (isCollidingWithRock(player)) {
+      player.x= previousX
+    }
   }
 
   for (const player of players) {
-    if (player.kbtime > 0) {
-      player.x -= Math.cos(player.kbangle) * 30
-      player.y -= Math.sin(player.kbangle) * 30
-      player.kbtime -= delta
+    if (player.slowTimer > 0) {
+      player.speedTimes = 0.5
+      player.slowTimer -= delta;
+    } else {
+      player.speedTimes = 1;
     }
   }
 
@@ -64,11 +115,11 @@ function tick(delta) {
       if (distance <= 40) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
-          player.attack = 10;
+          io.emit("upGradeAttack",10);
+          player.attack=10;
           player.skillUse = -1;
-        } else if (arrow.kbArrow) {
-          player.kbangle = arrow.angle + 3.14;
-          player.kbtime = 100;
+        } else if (arrow.slow) {
+          player.slowTimer = 1500;
         }
 
         player.Hp -= attacker.attack * player.takenAttack
@@ -95,15 +146,12 @@ function tick(delta) {
       if (distance <= 75 && slash.hitPlayer == 0) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
-          player.attack = 10;
+          io.emit("upGradeAttack",10);
+          player.attack=10;
           player.skillUse = -1;
         }
+        player.Hp -= slash.damage * player.takenAttack;
 
-        player.Hp -= attacker.attack * player.takenAttack;
-
-        if (attacker.attack == 10) {
-          attacker.attack = 5;
-        }
 
         if (player.Hp <= 0) {
           attacker.Hp += 5
@@ -124,11 +172,12 @@ function tick(delta) {
     for (const player of players) {
       if (player.id === thrust.playerId) continue;
       const [attacker] = players.filter((player) => player.id === thrust.playerId);
-      const distance = Math.sqrt(((player.x + 20) - (thrust.x + 13 + (45 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (45 * Math.sin(thrust.angle)))) ** 2);
-      if (distance <= 40 && thrust.hitPlayer == 0) {
+      const distance = Math.sqrt(((player.x + 20) - (thrust.x + 13 + (25 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (25 * Math.sin(thrust.angle)))) ** 2);
+      if (distance <= 60 && thrust.hitPlayer == 0) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
-          player.attack = 10;
+          io.emit("upGradeAttack",10);
+          player.attack=10;
           player.skillUse = -1;
         }
 
@@ -150,9 +199,12 @@ function tick(delta) {
 
   for (const player of players) {
     if (player.Hp <= 0) {
-      player.x = 1510/2;
-      player.y = 675/2;
+      player.x = 1510 / 2;
+      player.y = 675 / 2;
       player.Hp = 20;
+      if (player.playerType==3) {
+        player.attack=5;
+      }
     }
   }
   //skills
@@ -184,6 +236,7 @@ function tick(delta) {
   io.emit("arrows", arrows);
   io.emit("slashes", slashes);
   io.emit("thrusts", thrusts);
+  io.emit("rocks", rocks);
 };
 
 
@@ -208,11 +261,11 @@ async function main() { //map loading(takes a long time,so use a promise method)
       Hp: 20,
       skillUse: 0,
       speed: 5,
+      speedTimes: 1,
       takenAttack: 1,
       attack: 0,
-      kbtime: -1,
-      kbangle: 0,
-      direction: "right"
+      direction: "right",
+      slowTimer: 0
     });
 
     socket.emit('map', map2D);
@@ -221,7 +274,7 @@ async function main() { //map loading(takes a long time,so use a promise method)
       inputsMap[socket.id] = inputs;
     });
     //arrow
-    socket.on('arrow', (angle, kb) => {
+    socket.on('arrow', (angle, slow) => {
       const player = players.find(player => player.id === socket.id)
       arrows.push({
         angle,
@@ -229,15 +282,11 @@ async function main() { //map loading(takes a long time,so use a promise method)
         y: player.y + 20,
         timeLeft: 1000,
         playerId: socket.id,
-        kbArrow: kb
+        slow: slow
       })
-      if (kb == true) {
-        player.kbangle = angle
-        player.kbtime = 50
-      }
     })
     //slash
-    socket.on('slash', (angle) => {
+    socket.on('slash', (angle,playerDamage) => {
       const player = players.find(player => player.id === socket.id)
       slashes.push({
         angle,
@@ -245,8 +294,10 @@ async function main() { //map loading(takes a long time,so use a promise method)
         x: player.x,
         y: player.y - 40,
         timeLeft: 200,
+        damage: playerDamage,
         playerId: socket.id
       })
+      player.attack=5;
     })
     //thrust
     socket.on('thrust', (angle) => {
