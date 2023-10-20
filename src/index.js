@@ -256,7 +256,7 @@ async function main() { //map loading(takes a long time,so use a promise method)
       'left': false,
       'right': false
     };
-    randomRespawn = parseInt(Math.random()*100%4) //이거 보셈
+    randomRespawn = parseInt(Math.random()*100%4) //이거 보셈!
     players.push({
       id: socket.id,
       x: 10+1480*parseInt(randomRespawn/2), //존나 지능 플레이
