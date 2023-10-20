@@ -24,13 +24,16 @@ let arrows = [];
 let slashes = [];
 let thrusts = [];
 let rocks=[
-  {x:150,y:948},
+  {x:150,y:148},
+  {x:1400,y:448},
+  {x:250,y:408},
   {x:1300,y:137},
-  {x:658,y:289},
-  {x:784,y:471},
-  {x:374,y:1234},
-  {x:710,y:790},
+  {x:658,y:589},
+  {x:784,y:371},
+  {x:374,y:14},
+  {x:710,y:90},
   {x:1249,y:127}];
+  let randomRespawn =0;
   
 
 
@@ -199,8 +202,9 @@ function tick(delta) {
 
   for (const player of players) {
     if (player.Hp <= 0) {
-      player.x = 1510 / 2;
-      player.y = 675 / 2;
+      randomRespawn = parseInt(Math.random()*100%4) //이거 보셈
+      player.x = 10+1480*parseInt(randomRespawn/2); //존나 지능 플레이
+      player.y = 10+655*parseInt(randomRespawn%2); //보셈 존나 개쩖
       player.Hp = 20;
       if (player.playerType==3) {
         player.attack=5;
@@ -252,11 +256,11 @@ async function main() { //map loading(takes a long time,so use a promise method)
       'left': false,
       'right': false
     };
-
+    randomRespawn = parseInt(Math.random()*100%4) //이거 보셈
     players.push({
       id: socket.id,
-      x: 20,
-      y: 20,
+      x: 10+1480*parseInt(randomRespawn/2), //존나 지능 플레이
+      y: 10+655*parseInt(randomRespawn%2), //보셈 존나 개쩖
       playerType: 0,
       Hp: 20,
       skillUse: 0,
