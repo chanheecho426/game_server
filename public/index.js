@@ -35,7 +35,7 @@ function selectRouge() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 1, 7);
+    socket.emit("character_change", socket.id, 1, 7,20);
     playerTypeLocal = 1;
 }
 
@@ -46,7 +46,7 @@ function selectArcher() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 2, 3);
+    socket.emit("character_change", socket.id, 2, 3,14);
     playerTypeLocal = 2;
 }
 
@@ -57,7 +57,7 @@ function selectKnight() {
     ArcherSelectButton.classList.add(HIDDEN);
     KnightSelectButton.classList.remove(DEFAULT);
     KnightSelectButton.classList.add(HIDDEN);
-    socket.emit("character_change", socket.id, 3, 5);
+    socket.emit("character_change", socket.id, 3, 5,20);
     playerTypeLocal = 3;
 }
 //Showing Basics
@@ -197,7 +197,7 @@ window.addEventListener('keydown', (e) => {
                 keyHoldPrevent = 1;
             }
         } else if (playerTypeLocal == 2) {
-            if (Date.now() - skillRecharge > 7000 && keyHoldPrevent == 0) {
+            if (Date.now() - skillRecharge > 8000 && keyHoldPrevent == 0) {
                 skillRecharge = Date.now()
                 arrowSignal = 1;
                 keyHoldPrevent = 1;
@@ -275,7 +275,7 @@ window.addEventListener('click', (e) => {
     }
 })
 
-
+console.log("베타테스트 정말 아무도 안도와줬는데 도와주신 김명연 씨 감사드립니다.")
 //show screen
 function loop() {
     socket.on("upGradeAttack",(damage)=>{
@@ -317,7 +317,7 @@ function loop() {
     canvas.drawImage(mapImage, 0, 0, canvasEl.width, canvasEl.height, -cameraX, -cameraY, canvasEl.width, canvasEl.height);
 
     for (const rock of rocks) {
-        canvas.drawImage(rockImage, rock.x- cameraX,rock.y- cameraY,80,80);
+        canvas.drawImage(rockImage, rock.x- cameraX,rock.y- cameraY,50,50);
     }
 
     for (const player of players) {

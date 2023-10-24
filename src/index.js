@@ -45,7 +45,7 @@ function colliding(rect1,rect2) {
 }
 function isCollidingWithRock(player) {
   for (const rock of rocks) {
-    if (colliding({...player,w:40,h:40},{...rock,w:80,h:70})) {
+    if (colliding({...player,w:40,h:40},{...rock,w:50,h:45})) {
       return true;
     }
   }
@@ -175,8 +175,8 @@ function tick(delta) {
     for (const player of players) {
       if (player.id === thrust.playerId) continue;
       const [attacker] = players.filter((player) => player.id === thrust.playerId);
-      const distance = Math.sqrt(((player.x + 20) - (thrust.x + 13 + (25 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (25 * Math.sin(thrust.angle)))) ** 2);
-      if (distance <= 60 && thrust.hitPlayer == 0) {
+      const distance = Math.sqrt(((player.x + 20) - (thrust.x + 13 + (15 * Math.cos(thrust.angle)))) ** 2 + ((player.y + 20) - (thrust.y - 22 + (15 * Math.sin(thrust.angle)))) ** 2);
+      if (distance <= 75 && thrust.hitPlayer == 0) {
 
         if (player.playerType == 3 && player.skillUse > 0) {
           io.emit("upGradeAttack",10);
@@ -189,7 +189,7 @@ function tick(delta) {
         if (player.Hp <= 0) {
           attacker.Hp += 5
           if (attacker.Hp > 20) {
-            attacker.Hp = 20
+            attacker.Hp = 20;
           }
         }
 
@@ -205,7 +205,11 @@ function tick(delta) {
       randomRespawn = parseInt(Math.random()*100%4) //이거 보셈
       player.x = 10+1480*parseInt(randomRespawn/2); //존나 지능 플레이
       player.y = 10+655*parseInt(randomRespawn%2); //보셈 존나 개쩖
-      player.Hp = 20;
+      if (player.playerType==2) {
+        player.Hp = 14;
+      } else {
+        player.Hp = 20;
+      }
       if (player.playerType==3) {
         player.attack=5;
       }
@@ -337,11 +341,12 @@ async function main() { //map loading(takes a long time,so use a promise method)
       arrows = serverArrows
     })
 
-    socket.on('character_change', (PlayerId, CharacterNumber, CharacterAttack) => {
+    socket.on('character_change', (PlayerId, CharacterNumber, CharacterAttack,hp) => {
       const player = players.find(player => player.id === PlayerId)
       if (player.id == PlayerId) {
         player.playerType = CharacterNumber
         player.attack = CharacterAttack
+        player.Hp=hp
       }
 
     })
